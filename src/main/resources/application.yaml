@@ -1,3 +1,17 @@
 spring:
   application:
     name: Personal Information Manager
+  datasource:
+    url: jdbc:postgresql://localhost:5432/personal_information_manager
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+  jackson:
+    default-property-inclusion: non_null
+  sql:
+    init:
+      mode: always

@@ -35,25 +35,72 @@ public class PersonalInformationManagerApplication extends Application {
     }
 
     @Override
+    @SneakyThrows
     public void start(Stage primaryStage) {
         Properties properties = load();
         if (properties == null) {
-            TextField username = new TextField();
-            username.setPromptText("Username");
-            TextField password = new TextField();
-            password.setPromptText("Password");
-            Button authenticate = new Button("Authenticate");
-            authenticate.setMaxWidth(Double.MAX_VALUE);
-            authenticate.setOnAction(event -> {
-                authenticate(primaryStage, username.getText(), password.getText());
-                primaryStage.centerOnScreen();
-            });
-            primaryStage.setScene(new Scene(new VBox(username, password, authenticate)));
+            primaryStage.setScene(createAuthorizationScene(primaryStage));
         } else {
-            authenticate(primaryStage, (String) properties.get("username"), (String) properties.get("password"));
+            String username = (String) properties.get("username");
+            String password = (String) properties.get("password");
+            HttpResponse<String> response = authorize(username, password);
+            if (response.statusCode() == 401) {
+                primaryStage.setScene(createAuthorizationScene(primaryStage));
+                showUnauthorizedError();
+                Files.delete(Path.of(".properties"));
+            } else {
+                store(username, password);
+                List<Album> albums = new JsonMapper().readValue(response.body(), new TypeReference<>() {});
+                primaryStage.setScene(createAlbumsScene(albums));
+            }
         }
         primaryStage.setTitle("Personal Information Manager");
         primaryStage.show();
+    }
+
+    private Scene createAuthorizationScene(Stage stage) {
+        TextField usernameField = new TextField();
+        usernameField.setPromptText("Username");
+        TextField passwordField = new TextField();
+        passwordField.setPromptText("Password");
+        Button authorizeButton = new Button("Authorize");
+        authorizeButton.setMaxWidth(Double.MAX_VALUE);
+        authorizeButton.setOnAction(event -> {
+            String username = usernameField.getText();
+            String password = passwordField.getText();
+            HttpResponse<String> response = authorize(username, password);
+            if (response.statusCode() == 401) {
+                showUnauthorizedError();
+            } else {
+                store(username, password);
+                List<Album> albums = new JsonMapper().readValue(response.body(), new TypeReference<>() {});
+                stage.setScene(createAlbumsScene(albums));
+                stage.centerOnScreen();
+            }
+        });
+        return new Scene(new VBox(usernameField, passwordField, authorizeButton));
+    }
+
+    private Scene createAlbumsScene(List<Album> albums) {
+        ListView<Album> listView = new ListView<>(FXCollections.observableList(albums));
+        listView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Album> observable, Album oldValue, Album newValue) -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            if (newValue.getListenedAt() == null) {
+                alert.setHeaderText("%s — %s (%d) not listened".formatted(newValue.getBand(), newValue.getName(), newValue.getYear()));
+            } else {
+                String formatted = newValue.getListenedAt().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT));
+                alert.setHeaderText("%s — %s (%d) listened %s".formatted(newValue.getBand(), newValue.getName(), newValue.getYear(), formatted));
+            }
+            alert.showAndWait();
+        });
+        listView.setCellFactory(CheckBoxListCell.forListView(album -> new SimpleBooleanProperty(album.getListenedAt() != null)));
+        return new Scene(listView, 640, 400);
+    }
+
+    private void showUnauthorizedError() {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setHeaderText("Unauthorized");
+        alert.showAndWait();
     }
 
     @SneakyThrows
@@ -75,34 +122,13 @@ public class PersonalInformationManagerApplication extends Application {
     }
 
     @SneakyThrows
-    private static void authenticate(Stage stage, String username, String password) {
+    private static HttpResponse<String> authorize(String username, String password) {
         HttpClient client = HttpClient.newHttpClient();
-        store(username, password);
         String base64 = Base64.getEncoder().encodeToString((username + ':' + password).getBytes());
         HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/albums"))
                 .header("Authorization", "Basic " + base64).build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() == 401) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setHeaderText("Unauthorized");
-            alert.show();
-        } else {
-            List<Album> albums = new JsonMapper().readValue(response.body(), new TypeReference<>() {
-            });
-            ListView<Album> listView = new ListView<>(FXCollections.observableList(albums));
-            listView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Album> observable, Album oldValue, Album newValue) -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                if (newValue.getListenedAt() == null) {
-                    alert.setHeaderText("%s — %s (%d) not listened".formatted(newValue.getBand(), newValue.getName(), newValue.getYear()));
-                } else {
-                    String formatted = newValue.getListenedAt().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT));
-                    alert.setHeaderText("%s — %s (%d) listened %s".formatted(newValue.getBand(), newValue.getName(), newValue.getYear(), formatted));
-                }
-                alert.show();
-            });
-            listView.setCellFactory(CheckBoxListCell.forListView(album -> new SimpleBooleanProperty(album.getListenedAt() != null)));
-            stage.setScene(new Scene(listView, 640, 400));
-        }
+        return response;
     }
 
 }

@@ -22,6 +22,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Base64;
 import java.util.List;
 import java.util.Properties;
@@ -93,7 +95,8 @@ public class PersonalInformationManagerApplication extends Application {
                 if (newValue.getListenedAt() == null) {
                     alert.setHeaderText("%s — %s (%d) not listened".formatted(newValue.getBand(), newValue.getName(), newValue.getYear()));
                 } else {
-                    alert.setHeaderText("%s — %s (%d) listened %s".formatted(newValue.getBand(), newValue.getName(), newValue.getYear(), newValue.getListenedAt()));
+                    String formatted = newValue.getListenedAt().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT));
+                    alert.setHeaderText("%s — %s (%d) listened %s".formatted(newValue.getBand(), newValue.getName(), newValue.getYear(), formatted));
                 }
                 alert.show();
             });

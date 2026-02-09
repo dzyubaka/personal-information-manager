@@ -1,4 +1,4 @@
-package ru.dzyubaka.pim;
+package ru.dzyubaka.pim.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

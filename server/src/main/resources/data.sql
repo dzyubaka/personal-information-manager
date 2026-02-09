@@ -1,3 +1,7 @@
+insert into band
+values ('Clawfinger'),
+       ('Deftones');
+
 insert into album (name, band, year, listened_at)
 values ('Deaf Dumb Blind', 'Clawfinger', 1993, null),
        ('Use Your Brain', 'Clawfinger', 1995, null),

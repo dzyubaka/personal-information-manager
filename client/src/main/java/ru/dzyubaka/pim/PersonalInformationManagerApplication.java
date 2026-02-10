@@ -4,6 +4,8 @@ import javafx.application.Application;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -40,51 +42,44 @@ public class PersonalInformationManagerApplication extends Application {
         passwordField.setPromptText("Password");
         Button authorizeButton = new Button("Authorize");
         authorizeButton.setMaxWidth(Double.MAX_VALUE);
-        authorizeButton.setOnAction(event -> {
-            HttpResponse<String> response = authorize(usernameField.getText(), passwordField.getText());
-            if (response.statusCode() == 401) {
-                showUnauthorizedError();
-            } else {
-                List<Album> albums = new JsonMapper().readValue(response.body(), new TypeReference<>() {});
-                primaryStage.setScene(createAlbumsScene(albums));
-                primaryStage.centerOnScreen();
+        authorizeButton.setOnAction(new EventHandler<>() {
+            @Override
+            @SneakyThrows
+            public void handle(ActionEvent event) {
+                String username = usernameField.getText();
+                String password = passwordField.getText();
+                HttpClient client = HttpClient.newHttpClient();
+                String base64 = Base64.getEncoder().encodeToString((username + ':' + password).getBytes());
+                HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/albums"))
+                        .header("Authorization", "Basic " + base64).build();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() == 401) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setHeaderText("Unauthorized");
+                    alert.showAndWait();
+                } else {
+                    List<Album> albums = new JsonMapper().readValue(response.body(), new TypeReference<>() {
+                    });
+                    ListView<Album> listView = new ListView<>(FXCollections.observableList(albums));
+                    listView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Album> observable, Album oldValue, Album newValue) -> {
+                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        if (newValue.getListenedAt() == null) {
+                            alert.setHeaderText("%s — %s (%d) not listened".formatted(newValue.getBand(), newValue.getName(), newValue.getYear()));
+                        } else {
+                            String formatted = newValue.getListenedAt().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT));
+                            alert.setHeaderText("%s — %s (%d) listened %s".formatted(newValue.getBand(), newValue.getName(), newValue.getYear(), formatted));
+                        }
+                        alert.showAndWait();
+                    });
+                    listView.setCellFactory(CheckBoxListCell.forListView(album -> new SimpleBooleanProperty(album.getListenedAt() != null)));
+                    primaryStage.setScene(new Scene(listView, 640, 400));
+                    primaryStage.centerOnScreen();
+                }
             }
         });
         primaryStage.setScene(new Scene(new VBox(usernameField, passwordField, authorizeButton)));
         primaryStage.setTitle("Personal Information Manager");
         primaryStage.show();
-    }
-
-    private Scene createAlbumsScene(List<Album> albums) {
-        ListView<Album> listView = new ListView<>(FXCollections.observableList(albums));
-        listView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Album> observable, Album oldValue, Album newValue) -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            if (newValue.getListenedAt() == null) {
-                alert.setHeaderText("%s — %s (%d) not listened".formatted(newValue.getBand(), newValue.getName(), newValue.getYear()));
-            } else {
-                String formatted = newValue.getListenedAt().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT));
-                alert.setHeaderText("%s — %s (%d) listened %s".formatted(newValue.getBand(), newValue.getName(), newValue.getYear(), formatted));
-            }
-            alert.showAndWait();
-        });
-        listView.setCellFactory(CheckBoxListCell.forListView(album -> new SimpleBooleanProperty(album.getListenedAt() != null)));
-        return new Scene(listView, 640, 400);
-    }
-
-    private void showUnauthorizedError() {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setHeaderText("Unauthorized");
-        alert.showAndWait();
-    }
-
-    @SneakyThrows
-    private static HttpResponse<String> authorize(String username, String password) {
-        HttpClient client = HttpClient.newHttpClient();
-        String base64 = Base64.getEncoder().encodeToString((username + ':' + password).getBytes());
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/albums"))
-                .header("Authorization", "Basic " + base64).build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response;
     }
 
 }

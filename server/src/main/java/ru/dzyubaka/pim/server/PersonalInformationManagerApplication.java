@@ -1,4 +1,4 @@
-package ru.dzyubaka.pim;
+package ru.dzyubaka.pim.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package ru.dzyubaka.pim;
+package ru.dzyubaka.pim.server;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

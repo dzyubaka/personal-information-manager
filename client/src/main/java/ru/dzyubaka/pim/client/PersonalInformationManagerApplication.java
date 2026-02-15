@@ -1,4 +1,4 @@
-package ru.dzyubaka.pim;
+package ru.dzyubaka.pim.client;
 
 import javafx.application.Application;
 import javafx.beans.property.SimpleBooleanProperty;

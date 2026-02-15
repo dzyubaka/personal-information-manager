@@ -1,6 +1,7 @@
 package ru.dzyubaka.pim.server.client;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
@@ -8,10 +9,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.CheckBoxListCell;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.SneakyThrows;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
@@ -41,18 +44,39 @@ public class PersonalInformationManagerApplication extends Application {
                 String username = usernameField.getText();
                 String password = passwordField.getText();
                 HttpClient client = HttpClient.newHttpClient();
-                String base64 = Base64.getEncoder().encodeToString((username + ':' + password).getBytes());
-                HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands"))
-                        .header("Authorization", "Basic " + base64).build();
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                if (response.statusCode() == 401) {
+                String authorization = "Basic " + Base64.getEncoder().encodeToString((username + ':' + password).getBytes());
+                HttpRequest bandsRequest = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands"))
+                        .header("Authorization", authorization).build();
+                HttpResponse<String> bandsResponse = client.send(bandsRequest, HttpResponse.BodyHandlers.ofString());
+                if (bandsResponse.statusCode() == 401) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setHeaderText("Unauthorized");
                     alert.showAndWait();
                 } else {
-                    List<Band> bands = new JsonMapper().readValue(response.body(), new TypeReference<>() {});
-                    ListView<Band> listView = new ListView<>(FXCollections.observableList(bands));
-                    primaryStage.setScene(new Scene(listView, 640, 400));
+                    ObjectMapper mapper = new JsonMapper();
+                    List<Band> bands = mapper.readValue(bandsResponse.body(), new TypeReference<>() {});
+                    ListView<Band> bandsListView = new ListView<>(FXCollections.observableList(bands));
+                    Scene scene = new Scene(bandsListView, 640, 400);
+                    bandsListView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Band> observable, Band oldValue, Band newValue) -> {
+                        try {
+                            HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands/" + newValue.id()))
+                                    .header("Authorization", authorization).build();
+                            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                            if (bandsResponse.statusCode() == 401) {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setHeaderText("Unauthorized");
+                                alert.showAndWait();
+                            } else {
+                                Band band = mapper.readValue(response.body(), new TypeReference<>() {});
+                                ListView<Album> listView = new ListView<>(FXCollections.observableList(band.albums()));
+                                listView.setCellFactory(CheckBoxListCell.forListView(a -> new SimpleBooleanProperty(a.getListenedAt() != null)));
+                                scene.setRoot(listView);
+                            }
+                        } catch (IOException | InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                    primaryStage.setScene(scene);
                     primaryStage.centerOnScreen();
                 }
             } catch (IOException | InterruptedException e) {

@@ -13,6 +13,6 @@ public class Album {
 
     @Override
     public String toString() {
-        return band + " — " + name;
+        return year + " — " + name;
     }
 }

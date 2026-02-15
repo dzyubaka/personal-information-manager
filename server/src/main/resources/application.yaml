@@ -6,12 +6,5 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: postgres
-  jpa:
-    hibernate:
-      ddl-auto: create
-    defer-datasource-initialization: true
   jackson:
     default-property-inclusion: non_null
-  sql:
-    init:
-      mode: always

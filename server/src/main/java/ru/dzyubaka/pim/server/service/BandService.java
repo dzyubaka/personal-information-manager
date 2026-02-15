@@ -1,6 +1,7 @@
 package ru.dzyubaka.pim.server.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.dzyubaka.pim.server.dto.AlbumDto;
 import ru.dzyubaka.pim.server.dto.BandDetailDto;
@@ -17,7 +18,7 @@ public class BandService {
     private final BandRepository bandRepository;
 
     public Iterable<BandSummaryDto> findAll() {
-        return bandRepository.findAll().stream().map(b -> new BandSummaryDto(b.getId(), b.getName())).toList();
+        return bandRepository.findAll(Sort.by("name")).stream().map(b -> new BandSummaryDto(b.getId(), b.getName())).toList();
     }
 
     public Optional<BandDetailDto> findById(Long id) {

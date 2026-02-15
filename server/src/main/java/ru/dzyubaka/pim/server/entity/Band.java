@@ -1,6 +1,5 @@
-package ru.dzyubaka.pim.server.model;
+package ru.dzyubaka.pim.server.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -17,6 +16,5 @@ public class Band {
     private String name;
 
     @OneToMany(mappedBy = "band")
-    @JsonManagedReference
     private List<Album> albums;
 }

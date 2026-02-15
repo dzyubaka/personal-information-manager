@@ -1,4 +1,4 @@
-insert into band
+insert into band (name)
 values ('Clawfinger'),
        ('Deftones');
 

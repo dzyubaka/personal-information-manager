@@ -5,14 +5,11 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxListCell;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import lombok.SneakyThrows;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -31,7 +28,6 @@ public class PersonalInformationManagerApplication extends Application {
     }
 
     @Override
-    @SneakyThrows
     public void start(Stage primaryStage) {
         TextField usernameField = new TextField();
         usernameField.setPromptText("Username");
@@ -70,7 +66,12 @@ public class PersonalInformationManagerApplication extends Application {
                                 Band band = mapper.readValue(response.body(), new TypeReference<>() {});
                                 ListView<Album> listView = new ListView<>(FXCollections.observableList(band.albums()));
                                 listView.setCellFactory(CheckBoxListCell.forListView(a -> new SimpleBooleanProperty(a.getListenedAt() != null)));
-                                scene.setRoot(listView);
+                                BorderPane root = new BorderPane();
+                                Button button = new Button("Back");
+                                button.setOnAction(event1 -> scene.setRoot(bandsListView));
+                                root.setTop(new ToolBar(button));
+                                root.setCenter(listView);
+                                scene.setRoot(root);
                             }
                         } catch (IOException | InterruptedException e) {
                             throw new RuntimeException(e);

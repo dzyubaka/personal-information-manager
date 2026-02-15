@@ -1,0 +1,38 @@
+package ru.dzyubaka.pim.server.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import ru.dzyubaka.pim.server.dto.AlbumDto;
+import ru.dzyubaka.pim.server.dto.BandDetailDto;
+import ru.dzyubaka.pim.server.dto.BandSummaryDto;
+import ru.dzyubaka.pim.server.entity.Album;
+import ru.dzyubaka.pim.server.entity.Band;
+import ru.dzyubaka.pim.server.repository.BandRepository;
+
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class BandService {
+    private final BandRepository bandRepository;
+
+    public Iterable<BandSummaryDto> findAll() {
+        return bandRepository.findAll().stream().map(b -> new BandSummaryDto(b.getId(), b.getName())).toList();
+    }
+
+    public Optional<BandDetailDto> findById(Long id) {
+        return bandRepository.findById(id).map(BandService::toBandDetailDto);
+    }
+
+    private static BandDetailDto toBandDetailDto(Band band) {
+        return new BandDetailDto(band.getId(), band.getName(), band.getAlbums().stream().map(BandService::toAlbumDto).toList());
+    }
+
+    private static AlbumDto toAlbumDto(Album album) {
+        return new AlbumDto(album.getId(),
+                album.getBand().getName(),
+                album.getName(),
+                album.getYear(),
+                album.getListenedAt());
+    }
+}

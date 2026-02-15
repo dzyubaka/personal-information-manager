@@ -1,6 +1,5 @@
-package ru.dzyubaka.pim.server.model;
+package ru.dzyubaka.pim.server.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,7 +14,6 @@ public class Album {
     private Long id;
 
     @ManyToOne
-    @JsonBackReference
     private Band band;
 
     private String name;

@@ -16,5 +16,6 @@ public class Band {
     private String name;
 
     @OneToMany(mappedBy = "band")
+    @OrderBy("year")
     private List<Album> albums;
 }

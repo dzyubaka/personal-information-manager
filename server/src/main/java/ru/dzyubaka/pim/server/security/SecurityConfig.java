@@ -1,5 +1,6 @@
 package ru.dzyubaka.pim.server.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +18,9 @@ public class SecurityConfig {
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/auth").permitAll().anyRequest().authenticated())
+                .exceptionHandling(ex ->
+                        ex.authenticationEntryPoint((_, response, _) ->
+                                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED)))
                 .addFilterBefore(new AuthFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

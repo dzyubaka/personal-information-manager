@@ -17,7 +17,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/auth").permitAll().anyRequest().authenticated())
+                        auth.requestMatchers("/auth", "/swagger-ui/*", "/v3/api-docs/**").permitAll()
+                                .anyRequest().authenticated())
                 .exceptionHandling(ex ->
                         ex.authenticationEntryPoint((_, response, _) ->
                                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED)))

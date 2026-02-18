@@ -108,7 +108,7 @@ public class PersonalInformationManagerApplication extends Application {
         HttpResponse<String> response = CLIENT.send(bandRequest, HttpResponse.BodyHandlers.ofString());
         Band band = MAPPER.readValue(response.body(), new TypeReference<>() {});
         ListView<Album> listView = new ListView<>(FXCollections.observableList(band.albums()));
-        listView.setCellFactory(CheckBoxListCell.forListView(a -> new SimpleBooleanProperty(a.getListenedAt() != null)));
+        listView.setCellFactory(CheckBoxListCell.forListView(Album::listenedProperty));
         BorderPane root = new BorderPane();
         Button button = new Button("Back");
         button.setOnAction(event -> scene.setRoot(backView));

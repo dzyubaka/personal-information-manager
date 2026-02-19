@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class AlbumRequest {
 
-    private long bandId;
+    private long band;
 
     private String name;
 

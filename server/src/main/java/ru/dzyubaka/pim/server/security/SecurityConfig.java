@@ -1,6 +1,7 @@
 package ru.dzyubaka.pim.server.security;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,7 +14,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final AuthFilter authFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http
@@ -26,7 +30,7 @@ public class SecurityConfig {
                         ex.authenticationEntryPoint((_, response, _) ->
                                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED)))
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new AuthFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

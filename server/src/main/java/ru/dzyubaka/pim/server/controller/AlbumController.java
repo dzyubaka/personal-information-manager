@@ -1,10 +1,9 @@
 package ru.dzyubaka.pim.server.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.dzyubaka.pim.server.dto.AlbumDto;
+import org.springframework.web.bind.annotation.*;
+import ru.dzyubaka.pim.server.dto.AlbumResponse;
+import ru.dzyubaka.pim.server.dto.AlbumRequest;
 import ru.dzyubaka.pim.server.service.AlbumService;
 
 @RestController
@@ -14,7 +13,12 @@ public class AlbumController {
     private final AlbumService albumService;
 
     @GetMapping
-    public Iterable<AlbumDto> findAll() {
+    public Iterable<AlbumResponse> findAll() {
         return albumService.findAll();
+    }
+
+    @PutMapping("/{id}")
+    public void put(@PathVariable long id, @RequestBody AlbumRequest albumRequest) {
+        albumService.update(id, albumRequest);
     }
 }

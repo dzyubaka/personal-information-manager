@@ -3,7 +3,7 @@ package ru.dzyubaka.pim.server.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.dzyubaka.pim.server.dto.AlbumDto;
+import ru.dzyubaka.pim.server.dto.AlbumResponse;
 import ru.dzyubaka.pim.server.dto.BandDetailDto;
 import ru.dzyubaka.pim.server.dto.BandSummaryDto;
 import ru.dzyubaka.pim.server.entity.Album;
@@ -26,11 +26,11 @@ public class BandService {
     }
 
     private static BandDetailDto toBandDetailDto(Band band) {
-        return new BandDetailDto(band.getId(), band.getName(), band.getAlbums().stream().map(BandService::toAlbumDto).toList());
+        return new BandDetailDto(band.getId(), band.getName(), band.getAlbums().stream().map(BandService::toAlbumResponse).toList());
     }
 
-    private static AlbumDto toAlbumDto(Album album) {
-        return new AlbumDto(album.getId(),
+    private static AlbumResponse toAlbumResponse(Album album) {
+        return new AlbumResponse(album.getId(),
                 album.getBand().getName(),
                 album.getName(),
                 album.getYear(),

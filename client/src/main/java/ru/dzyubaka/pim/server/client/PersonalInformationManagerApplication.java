@@ -1,7 +1,6 @@
 package ru.dzyubaka.pim.server.client;
 
 import javafx.application.Application;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.scene.Parent;
@@ -22,6 +21,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class PersonalInformationManagerApplication extends Application {
@@ -88,9 +88,9 @@ public class PersonalInformationManagerApplication extends Application {
 
     @SneakyThrows
     private static void showBandsScene(Stage stage, String token) {
-        HttpRequest bandsRequest = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands"))
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands"))
                 .header("Authorization", "Bearer " + token).build();
-        HttpResponse<String> bandsResponse = CLIENT.send(bandsRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> bandsResponse = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         List<Band> bands = MAPPER.readValue(bandsResponse.body(), new TypeReference<>() {
         });
         ListView<Band> bandsListView = new ListView<>(FXCollections.observableList(bands));
@@ -103,17 +103,34 @@ public class PersonalInformationManagerApplication extends Application {
 
     @SneakyThrows
     private static void showBandView(Scene scene, long bandId, String token, Parent backView) {
-        HttpRequest bandRequest = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands/" + bandId))
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands/" + bandId))
                 .header("Authorization", "Bearer " + token).build();
-        HttpResponse<String> response = CLIENT.send(bandRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         Band band = MAPPER.readValue(response.body(), new TypeReference<>() {});
+        for (Album album : band.albums()) {
+            album.getListened().set(album.getListenedAt() != null);
+            album.getListened().addListener((observable, oldValue, newValue) -> {
+                album.setListenedAt(newValue ? LocalDateTime.now() : null);
+                put(album, token);
+            });
+        }
         ListView<Album> listView = new ListView<>(FXCollections.observableList(band.albums()));
-        listView.setCellFactory(CheckBoxListCell.forListView(Album::listenedProperty));
+        listView.setCellFactory(CheckBoxListCell.forListView(Album::getListened));
         BorderPane root = new BorderPane();
         Button button = new Button("Back");
         button.setOnAction(event -> scene.setRoot(backView));
         root.setTop(new ToolBar(button));
         root.setCenter(listView);
         scene.setRoot(root);
+    }
+
+    @SneakyThrows
+    private static void put(Album album, String token) {
+        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/albums/" + album.getId()))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(MAPPER.writeValueAsString(album)))
+                .build();
+        CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
     }
 }

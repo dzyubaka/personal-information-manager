@@ -1,5 +1,6 @@
 package ru.dzyubaka.pim.server.client;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import lombok.Data;
@@ -8,20 +9,14 @@ import java.time.LocalDateTime;
 
 @Data
 public class Album {
+    private long id;
+    private long band;
     private String name;
-    private String band;
     private int year;
     private LocalDateTime listenedAt;
 
-    public BooleanProperty listenedProperty() {
-        return new SimpleBooleanProperty(listenedAt != null) {
-            @Override
-            public void set(boolean newValue) {
-                listenedAt = newValue ? LocalDateTime.now() : null;
-                super.set(newValue);
-            }
-        };
-    }
+    @JsonIgnore
+    private final BooleanProperty listened = new SimpleBooleanProperty();
 
     @Override
     public String toString() {

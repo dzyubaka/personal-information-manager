@@ -20,7 +20,7 @@ public class AlbumService {
     public Collection<AlbumResponse> findAll() {
         return albumRepository.findAll().stream().map(a -> new AlbumResponse(
                 a.getId(),
-                a.getBand().getName(),
+                a.getBand().getId(),
                 a.getName(),
                 a.getYear(),
                 a.getListenedAt()
@@ -29,8 +29,7 @@ public class AlbumService {
 
     public void update(long id, AlbumRequest albumRequest) {
         Album album = albumRepository.findById(id).orElseThrow();
-        Band band = bandRepository.findById(albumRequest.getBandId()).orElseThrow();
-        album.setBand(band);
+        album.setBand(bandRepository.findById(albumRequest.getBand()).orElseThrow());
         album.setName(albumRequest.getName());
         album.setYear(albumRequest.getYear());
         album.setListenedAt(albumRequest.getListenedAt());

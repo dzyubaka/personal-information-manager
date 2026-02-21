@@ -116,14 +116,24 @@ public class PersonalInformationManagerApplication extends Application {
         }
         TableView<Album> tableView = new TableView<>(FXCollections.observableList(band.albums()));
         tableView.setEditable(true);
-        TableColumn<Album, Boolean> listenedColumn = new TableColumn<>();
+        TableColumn<Album, Integer> indexColumn = new TableColumn<>("#");
+        indexColumn.setCellFactory(column -> new TableCell<>() {
+            @Override
+            public void updateIndex(int newIndex) {
+                super.updateIndex(newIndex);
+                if (!isEmpty()) {
+                    setText(String.valueOf(newIndex + 1));
+                }
+            }
+        });
+        TableColumn<Album, Boolean> listenedColumn = new TableColumn<>("✓");
         listenedColumn.setCellValueFactory(a -> a.getValue().getListened());
         listenedColumn.setCellFactory(CheckBoxTableCell.forTableColumn(listenedColumn));
-        TableColumn<Album, Integer> yearColumn = new TableColumn<>("Year");
-        yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
         TableColumn<Album, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        tableView.getColumns().addAll(listenedColumn, yearColumn, nameColumn);
+        TableColumn<Album, Integer> yearColumn = new TableColumn<>("Year");
+        yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
+        tableView.getColumns().addAll(indexColumn, listenedColumn, nameColumn, yearColumn);
         BorderPane root = new BorderPane();
         Button button = new Button("Back");
         button.setOnAction(event -> scene.setRoot(backView));

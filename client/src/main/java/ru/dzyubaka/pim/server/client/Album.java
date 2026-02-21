@@ -17,9 +17,4 @@ public class Album {
 
     @JsonIgnore
     private final BooleanProperty listened = new SimpleBooleanProperty();
-
-    @Override
-    public String toString() {
-        return year + " — " + name;
-    }
 }

@@ -6,7 +6,8 @@ import javafx.collections.FXCollections;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxListCell;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -88,11 +89,10 @@ public class PersonalInformationManagerApplication extends Application {
 
     @SneakyThrows
     private static void showBandsScene(Stage stage, String token) {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands"))
+        HttpRequest bandsRequest = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands"))
                 .header("Authorization", "Bearer " + token).build();
-        HttpResponse<String> bandsResponse = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-        List<Band> bands = MAPPER.readValue(bandsResponse.body(), new TypeReference<>() {
-        });
+        HttpResponse<String> bandsResponse = CLIENT.send(bandsRequest, HttpResponse.BodyHandlers.ofString());
+        List<Band> bands = MAPPER.readValue(bandsResponse.body(), new TypeReference<>() {});
         ListView<Band> bandsListView = new ListView<>(FXCollections.observableList(bands));
         Scene scene = new Scene(bandsListView, 640, 400);
         bandsListView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Band> observable, Band oldValue, Band newValue) ->
@@ -114,13 +114,21 @@ public class PersonalInformationManagerApplication extends Application {
                 put(album, token);
             });
         }
-        ListView<Album> listView = new ListView<>(FXCollections.observableList(band.albums()));
-        listView.setCellFactory(CheckBoxListCell.forListView(Album::getListened));
+        TableView<Album> tableView = new TableView<>(FXCollections.observableList(band.albums()));
+        tableView.setEditable(true);
+        TableColumn<Album, Boolean> listenedColumn = new TableColumn<>();
+        listenedColumn.setCellValueFactory(a -> a.getValue().getListened());
+        listenedColumn.setCellFactory(CheckBoxTableCell.forTableColumn(listenedColumn));
+        TableColumn<Album, Integer> yearColumn = new TableColumn<>("Year");
+        yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
+        TableColumn<Album, String> nameColumn = new TableColumn<>("Name");
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        tableView.getColumns().addAll(listenedColumn, yearColumn, nameColumn);
         BorderPane root = new BorderPane();
         Button button = new Button("Back");
         button.setOnAction(event -> scene.setRoot(backView));
         root.setTop(new ToolBar(button));
-        root.setCenter(listView);
+        root.setCenter(tableView);
         scene.setRoot(root);
     }
 

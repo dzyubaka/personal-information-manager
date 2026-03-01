@@ -24,7 +24,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class AuthFilter extends OncePerRequestFilter {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt-secret}")
     private String jwtSecretKey;
 
     @Override

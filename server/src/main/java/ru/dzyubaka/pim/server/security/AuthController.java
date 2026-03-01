@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthenticationConfiguration authenticationConfiguration;
 
-    @Value("${jwt.secret}")
+    @Value("${jwt-secret}")
     private String jwtSecretKey;
 
     @PostMapping("/auth")

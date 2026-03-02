@@ -18,11 +18,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class PersonalInformationManagerApplication extends Application {
-    private static final Path PATH = Path.of("token.txt");
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -32,7 +29,7 @@ public class PersonalInformationManagerApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        String token = loadToken();
+        String token = TokenStorage.load();
         if (token == null) {
             showAuthScene(primaryStage);
         } else {
@@ -40,11 +37,6 @@ public class PersonalInformationManagerApplication extends Application {
         }
         primaryStage.setTitle("Personal Information Manager");
         primaryStage.show();
-    }
-
-    @SneakyThrows
-    private static String loadToken() {
-        return Files.exists(PATH) ? Files.readString(PATH) : null;
     }
 
     private static void showAuthScene(Stage stage) {
@@ -61,16 +53,11 @@ public class PersonalInformationManagerApplication extends Application {
                 alert.setHeaderText("Unauthorized");
                 alert.showAndWait();
             } else {
-                saveToken(token);
+                TokenStorage.save(token);
                 showBandsScene(stage, token);
             }
         });
         stage.setScene(new Scene(new VBox(username, password, authorizeButton)));
-    }
-
-    @SneakyThrows
-    private static void saveToken(String token) {
-        Files.writeString(PATH, token);
     }
 
     @SneakyThrows

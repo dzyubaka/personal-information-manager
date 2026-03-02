@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.SneakyThrows;
 import ru.dzyubaka.pim.client.model.Band;
+import ru.dzyubaka.pim.client.view.AlbumsPane;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 

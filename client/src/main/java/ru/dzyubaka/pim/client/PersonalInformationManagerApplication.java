@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 import lombok.SneakyThrows;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -29,7 +28,7 @@ import java.time.LocalDateTime;
 public class PersonalInformationManagerApplication extends Application {
     private static final Path PATH = Path.of("token.txt");
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
-    private static final ObjectMapper MAPPER = new JsonMapper();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static void main(String[] args) {
         launch(args);

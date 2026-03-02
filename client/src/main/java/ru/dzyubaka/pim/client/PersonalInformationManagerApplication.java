@@ -4,11 +4,8 @@ import javafx.application.Application;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -23,7 +20,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 
 public class PersonalInformationManagerApplication extends Application {
     private static final Path PATH = Path.of("token.txt");
@@ -114,59 +110,8 @@ public class PersonalInformationManagerApplication extends Application {
         root.setCenter(listView);
         Scene scene = new Scene(root, 640, 400);
         listView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Band> observable, Band oldValue, Band newValue) ->
-                showBandView(scene, newValue.id(), token, root));
+                scene.setRoot(new AlbumsPane(newValue.id(), token, e -> scene.setRoot(root))));
         stage.setScene(scene);
         stage.centerOnScreen();
-    }
-
-    @SneakyThrows
-    private static void showBandView(Scene scene, long bandId, String token, Parent backView) {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands/" + bandId))
-                .header("Authorization", "Bearer " + token).build();
-        HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-        Band band = MAPPER.readValue(response.body(), new TypeReference<>() {});
-        for (Album album : band.albums()) {
-            album.getListened().set(album.getListenedAt() != null);
-            album.getListened().addListener((observable, oldValue, newValue) -> {
-                album.setListenedAt(newValue ? LocalDateTime.now() : null);
-                put(album, token);
-            });
-        }
-        TableView<Album> tableView = new TableView<>(FXCollections.observableList(band.albums()));
-        tableView.setEditable(true);
-        TableColumn<Album, Integer> indexColumn = new TableColumn<>("#");
-        indexColumn.setCellFactory(column -> new TableCell<>() {
-            @Override
-            public void updateIndex(int newIndex) {
-                super.updateIndex(newIndex);
-                if (!isEmpty()) {
-                    setText(String.valueOf(newIndex + 1));
-                }
-            }
-        });
-        TableColumn<Album, Boolean> listenedColumn = new TableColumn<>("✓");
-        listenedColumn.setCellValueFactory(a -> a.getValue().getListened());
-        listenedColumn.setCellFactory(CheckBoxTableCell.forTableColumn(listenedColumn));
-        TableColumn<Album, String> nameColumn = new TableColumn<>("Name");
-        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        TableColumn<Album, Integer> yearColumn = new TableColumn<>("Year");
-        yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
-        tableView.getColumns().addAll(indexColumn, listenedColumn, nameColumn, yearColumn);
-        BorderPane root = new BorderPane();
-        Button button = new Button("Back");
-        button.setOnAction(event -> scene.setRoot(backView));
-        root.setTop(new ToolBar(button));
-        root.setCenter(tableView);
-        scene.setRoot(root);
-    }
-
-    @SneakyThrows
-    private static void put(Album album, String token) {
-        HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/albums/" + album.getId()))
-                .header("Authorization", "Bearer " + token)
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(MAPPER.writeValueAsString(album)))
-                .build();
-        CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
     }
 }

@@ -3,6 +3,7 @@ package ru.dzyubaka.pim.client;
 import javafx.application.Application;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -16,6 +17,7 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -23,7 +25,6 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class PersonalInformationManagerApplication extends Application {
     private static final Path PATH = Path.of("token.txt");
@@ -92,11 +93,29 @@ public class PersonalInformationManagerApplication extends Application {
         HttpRequest bandsRequest = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands"))
                 .header("Authorization", "Bearer " + token).build();
         HttpResponse<String> bandsResponse = CLIENT.send(bandsRequest, HttpResponse.BodyHandlers.ofString());
-        List<Band> bands = MAPPER.readValue(bandsResponse.body(), new TypeReference<>() {});
-        ListView<Band> bandsListView = new ListView<>(FXCollections.observableList(bands));
-        Scene scene = new Scene(bandsListView, 640, 400);
-        bandsListView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Band> observable, Band oldValue, Band newValue) ->
-                showBandView(scene, newValue.id(), token, bandsListView));
+        ObservableList<Band> bands = FXCollections.observableList(MAPPER.readValue(bandsResponse.body(), new TypeReference<>() {}));
+        ListView<Band> listView = new ListView<>(bands);
+        BorderPane root = new BorderPane();
+        Button button = new Button("Import");
+        button.setOnAction(event -> {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setHeaderText("Enter band name");
+            dialog.showAndWait().ifPresent(s -> {
+                try {
+                    HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands/import/" + s))
+                            .header("Authorization", "Bearer " + token).POST(HttpRequest.BodyPublishers.noBody()).build();
+                    HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+                    bands.add(MAPPER.readValue(response.body(), Band.class));
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
+        root.setTop(new ToolBar(button));
+        root.setCenter(listView);
+        Scene scene = new Scene(root, 640, 400);
+        listView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Band> observable, Band oldValue, Band newValue) ->
+                showBandView(scene, newValue.id(), token, root));
         stage.setScene(scene);
         stage.centerOnScreen();
     }

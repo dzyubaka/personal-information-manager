@@ -1,20 +1,14 @@
 package ru.dzyubaka.pim.client;
 
 import javafx.application.Application;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.SneakyThrows;
-import ru.dzyubaka.pim.client.model.Band;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -22,7 +16,6 @@ import java.net.http.HttpResponse;
 
 public class PersonalInformationManagerApplication extends Application {
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static void main(String[] args) {
         launch(args);
@@ -34,7 +27,7 @@ public class PersonalInformationManagerApplication extends Application {
         if (token == null) {
             showAuthScene(primaryStage);
         } else {
-            showBandsScene(primaryStage, token);
+            primaryStage.setScene(new Scene(new BandsPane(primaryStage, token), 640, 480));
         }
         primaryStage.setTitle("Personal Information Manager");
         primaryStage.show();
@@ -55,7 +48,8 @@ public class PersonalInformationManagerApplication extends Application {
                 alert.showAndWait();
             } else {
                 TokenStorage.save(token);
-                showBandsScene(stage, token);
+                stage.setScene(new Scene(new BandsPane(stage, token), 640, 480));
+                stage.centerOnScreen();
             }
         });
         stage.setScene(new Scene(new VBox(username, password, authorizeButton)));
@@ -69,37 +63,5 @@ public class PersonalInformationManagerApplication extends Application {
                 .build();
         HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
         return response.statusCode() == 401 ? null : response.body();
-    }
-
-    @SneakyThrows
-    private static void showBandsScene(Stage stage, String token) {
-        HttpRequest bandsRequest = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands"))
-                .header("Authorization", "Bearer " + token).build();
-        HttpResponse<String> bandsResponse = CLIENT.send(bandsRequest, HttpResponse.BodyHandlers.ofString());
-        ObservableList<Band> bands = FXCollections.observableList(MAPPER.readValue(bandsResponse.body(), new TypeReference<>() {}));
-        ListView<Band> listView = new ListView<>(bands);
-        BorderPane root = new BorderPane();
-        Button button = new Button("Import");
-        button.setOnAction(event -> {
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.setHeaderText("Enter band name");
-            dialog.showAndWait().ifPresent(s -> {
-                try {
-                    HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:8080/bands/import/" + s))
-                            .header("Authorization", "Bearer " + token).POST(HttpRequest.BodyPublishers.noBody()).build();
-                    HttpResponse<String> response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-                    bands.add(MAPPER.readValue(response.body(), Band.class));
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        });
-        root.setTop(new ToolBar(button));
-        root.setCenter(listView);
-        Scene scene = new Scene(root, 640, 400);
-        listView.getSelectionModel().selectedItemProperty().addListener((ObservableValue<? extends Band> observable, Band oldValue, Band newValue) ->
-                scene.setRoot(new AlbumsPane(newValue.id(), token, e -> scene.setRoot(root))));
-        stage.setScene(scene);
-        stage.centerOnScreen();
     }
 }

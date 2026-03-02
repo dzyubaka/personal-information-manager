@@ -1,4 +1,4 @@
-package ru.dzyubaka.pim.client;
+package ru.dzyubaka.pim.client.model;
 
 import java.util.List;
 

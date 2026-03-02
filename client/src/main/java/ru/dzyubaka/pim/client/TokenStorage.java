@@ -9,7 +9,7 @@ public class TokenStorage {
     private static final Path PATH = Path.of("token.txt");
 
     @SneakyThrows
-    static void save(String token) {
+    public static void save(String token) {
         Files.writeString(PATH, token);
     }
 

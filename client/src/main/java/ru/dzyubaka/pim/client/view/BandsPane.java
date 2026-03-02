@@ -1,4 +1,4 @@
-package ru.dzyubaka.pim.client;
+package ru.dzyubaka.pim.client.view;
 
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;

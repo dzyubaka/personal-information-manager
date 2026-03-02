@@ -8,6 +8,8 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import lombok.SneakyThrows;
+import ru.dzyubaka.pim.client.model.Album;
+import ru.dzyubaka.pim.client.model.Band;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 

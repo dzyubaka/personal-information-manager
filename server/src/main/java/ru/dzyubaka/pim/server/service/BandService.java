@@ -30,10 +30,12 @@ public class BandService {
     }
 
     private static AlbumResponse toAlbumResponse(Album album) {
-        return new AlbumResponse(album.getId(),
+        return new AlbumResponse(
+                album.getId(),
                 album.getBand().getId(),
-                album.getName(),
+                album.getNumber(),
                 album.getYear(),
+                album.getName(),
                 album.getListenedAt());
     }
 }

@@ -5,7 +5,8 @@ import java.time.LocalDateTime;
 public record AlbumResponse(
         long id,
         long band,
-        String name,
+        Integer number,
         int year,
+        String name,
         LocalDateTime listenedAt) {
 }

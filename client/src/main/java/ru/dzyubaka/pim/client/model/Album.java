@@ -9,10 +9,17 @@ import java.time.LocalDateTime;
 
 @Data
 public class Album {
+
     private long id;
+
     private long band;
-    private String name;
+
+    private Integer number;
+
     private int year;
+
+    private String name;
+
     private LocalDateTime listenedAt;
 
     @JsonIgnore

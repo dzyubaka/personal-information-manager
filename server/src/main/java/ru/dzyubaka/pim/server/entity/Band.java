@@ -20,6 +20,6 @@ public class Band {
     private String name;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "band", orphanRemoval = true)
-    @OrderBy("year")
+    @OrderBy("number")
     private List<Album> albums;
 }

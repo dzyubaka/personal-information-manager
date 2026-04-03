@@ -21,8 +21,9 @@ public class AlbumService {
         return albumRepository.findAll().stream().map(a -> new AlbumResponse(
                 a.getId(),
                 a.getBand().getId(),
-                a.getName(),
+                a.getNumber(),
                 a.getYear(),
+                a.getName(),
                 a.getListenedAt()
         )).toList();
     }

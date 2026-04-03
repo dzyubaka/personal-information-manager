@@ -20,9 +20,12 @@ public class Album {
     @ManyToOne
     private Band band;
 
-    private String name;
+    private Integer number;
 
     private int year;
 
+    private String name;
+
     private LocalDateTime listenedAt;
+
 }

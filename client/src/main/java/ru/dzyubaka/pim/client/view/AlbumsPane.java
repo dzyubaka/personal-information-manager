@@ -38,16 +38,8 @@ public class AlbumsPane extends BorderPane {
         }
         TableView<Album> tableView = new TableView<>(FXCollections.observableList(band.albums()));
         tableView.setEditable(true);
-        TableColumn<Album, Integer> indexColumn = new TableColumn<>("#");
-        indexColumn.setCellFactory(column -> new TableCell<>() {
-            @Override
-            public void updateIndex(int newIndex) {
-                super.updateIndex(newIndex);
-                if (!isEmpty()) {
-                    setText(String.valueOf(newIndex + 1));
-                }
-            }
-        });
+        TableColumn<Album, Integer> numberColumn = new TableColumn<>("#");
+        numberColumn.setCellValueFactory(new PropertyValueFactory<>("number"));
         TableColumn<Album, Boolean> listenedColumn = new TableColumn<>("✓");
         listenedColumn.setCellValueFactory(a -> a.getValue().getListened());
         listenedColumn.setCellFactory(CheckBoxTableCell.forTableColumn(listenedColumn));
@@ -55,7 +47,7 @@ public class AlbumsPane extends BorderPane {
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         TableColumn<Album, Integer> yearColumn = new TableColumn<>("Year");
         yearColumn.setCellValueFactory(new PropertyValueFactory<>("year"));
-        tableView.getColumns().addAll(indexColumn, listenedColumn, nameColumn, yearColumn);
+        tableView.getColumns().addAll(numberColumn, listenedColumn, nameColumn, yearColumn);
         Button button = new Button("Back");
         button.setOnAction(onBack);
         setTop(new ToolBar(button));

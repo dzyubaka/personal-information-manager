@@ -8,7 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import lombok.SneakyThrows;
-import ru.dzyubaka.pim.client.view.BandsPane;
+import ru.dzyubaka.pim.client.view.BandListView;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -28,7 +28,7 @@ public class PersonalInformationManagerApplication extends Application {
         if (token == null) {
             showAuthScene(primaryStage);
         } else {
-            primaryStage.setScene(new Scene(new BandsPane(primaryStage, token), 640, 480));
+            primaryStage.setScene(new Scene(new BandListView(primaryStage, token), 640, 480));
         }
         primaryStage.setTitle("Personal Information Manager");
         primaryStage.show();
@@ -49,7 +49,7 @@ public class PersonalInformationManagerApplication extends Application {
                 alert.showAndWait();
             } else {
                 TokenStorage.save(token);
-                stage.setScene(new Scene(new BandsPane(stage, token), 640, 480));
+                stage.setScene(new Scene(new BandListView(stage, token), 640, 480));
                 stage.centerOnScreen();
             }
         });

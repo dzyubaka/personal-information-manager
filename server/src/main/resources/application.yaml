@@ -9,4 +9,3 @@ spring:
   jackson:
     default-property-inclusion: non_null
 jwt-secret-key: ${JWT_SECRET_KEY}
-yandex-music-cookie: ${YANDEX_MUSIC_COOKIE}

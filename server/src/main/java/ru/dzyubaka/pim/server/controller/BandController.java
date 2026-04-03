@@ -24,10 +24,4 @@ public class BandController {
     public Optional<BandDetailDto> findById(@PathVariable Long id) {
         return bandService.findById(id);
     }
-
-    @PostMapping("/import/{bandName}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public BandSummaryDto importBand(@PathVariable String bandName) {
-        return bandService.importBand(bandName);
-    }
 }

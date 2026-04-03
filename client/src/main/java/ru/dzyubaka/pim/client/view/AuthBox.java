@@ -32,7 +32,7 @@ public class AuthBox extends VBox {
                 alert.showAndWait();
             } else {
                 TokenStorage.save(token);
-                stage.setScene(new Scene(new BandsPane(stage, token), 640, 400));
+                stage.setScene(new Scene(new BandListView(stage, token), 640, 400));
                 stage.centerOnScreen();
             }
         });

@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=pim
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+  app:
+    build: .
+    environment:
+      - DATABASE_URL=jdbc:postgresql://db/pim
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:

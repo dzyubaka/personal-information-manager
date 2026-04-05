@@ -2,10 +2,11 @@ spring:
   application:
     name: Personal Information Manager
   datasource:
-    url: jdbc:postgresql://localhost:5432/personal_information_manager
+    url: ${DATABASE_URL:jdbc:postgresql://localhost/pim}
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: postgres
+  jpa.hibernate.ddl-auto: update
   jackson:
     default-property-inclusion: non_null
 jwt-secret-key: ${JWT_SECRET_KEY}
